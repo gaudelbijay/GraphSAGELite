@@ -1,10 +1,13 @@
 import numpy as np
+import os
 import tensorflow as tf
 from neighbor_sampler import sample_neighs
 import networkx as nx
 from graphsage import GraphSAGE
 from tensorflow.keras.callbacks import ModelCheckpoint
 from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Lambda
+from tensorflow.keras.models import Model
 from utils import preprocess_adj, plot_embeddings, load_data_v1
 
 if __name__ == "__main__":
@@ -36,16 +39,19 @@ if __name__ == "__main__":
     model.compile(Adam(0.001), 'categorical_crossentropy',
                   weighted_metrics=['categorical_crossentropy', 'acc'])
     val_data = [model_input, y_val, val_mask]
-    mc_callback = ModelCheckpoint('./best_model.h5',
-                                  monitor='val_weighted_categorical_crossentropy',
-                                  save_best_only=True,
-                                  save_weights_only=True)
+
+    # checkpoint_dir = './training_checkpoints'
+    # # Name of the checkpoint files
+    # checkpoint_prefix = os.path.join(checkpoint_dir, "ckpt_{epoch}")
+    # mc_callback = ModelCheckpoint(filepath=checkpoint_dir,
+    #                               monitor='val_weighted_categorical_crossentropy',
+    #                               save_best_only=True,
+    #                               save_weights_only=True)
     print('start training')
     print('y_train:', y_train.shape)
-    # print("model input: ", type(model_input[0]), type(model_input[1]), type(model_input[2]), type(model_input[3]))
     model.fit(model_input, y_train, sample_weight=train_mask, validation_data=val_data, batch_size=A.shape[0],
-              epochs=200, shuffle=False, verbose=2, callbacks=[mc_callback])
-    model.load_weights('./best_model.h5')
+              epochs=100, shuffle=False, verbose=2,)  # callbacks=[mc_callback])
+    # model.load_weights(checkpoint_dir)
 
     eval_results = model.evaluate(
         model_input, y_test, sample_weight=test_mask, batch_size=A.shape[0])
