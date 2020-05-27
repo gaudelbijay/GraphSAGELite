@@ -11,7 +11,6 @@ from tensorflow.keras.models import Model
 from utils import preprocess_adj, plot_embeddings, load_data_v1
 
 if __name__ == "__main__":
-    tf.compat.v1.disable_eager_execution()
     print('Tensorflow ', tf.__version__, ' is running: ')
     A, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data_v1('cora')
     features /= features.sum(axis=1, ).reshape(-1, 1)
