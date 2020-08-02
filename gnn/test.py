@@ -10,6 +10,8 @@ from tensorflow.keras.layers import Lambda
 from tensorflow.keras.models import Model
 from utils import preprocess_adj, plot_embeddings, load_data_v1
 
+tf.compat.v1.disable_eager_execution()
+
 if __name__ == "__main__":
     print('Tensorflow ', tf.__version__, ' is running: ')
     A, features, y_train, y_val, y_test, train_mask, val_mask, test_mask = load_data_v1('cora')
@@ -20,7 +22,8 @@ if __name__ == "__main__":
     neigh_number = [10, 25]
     neigh_maxlen = []
     features = np.squeeze(np.asarray(features))
-    model_input = [features, np.asarray(indexes, dtype=np.int32)]
+    # print(features.shape)
+    model_input = [features, np.asarray(indexes, dtype=np.int64)]
     for num in neigh_number:
         sample_neigh, sample_neigh_len = sample_neighs(G, indexes, num, self_loop=False)
         model_input.extend([sample_neigh])
@@ -32,7 +35,7 @@ if __name__ == "__main__":
                       n_classes=y_train.shape[1],
                       use_bias=True,
                       activation=tf.nn.relu,
-                      aggregator_type='mean',
+                      aggregator_type='pool',
                       dropout_rate=0.5,
                       l2_reg=2.5e-4)
     model.compile(Adam(0.001), 'categorical_crossentropy',
@@ -49,7 +52,7 @@ if __name__ == "__main__":
     print('start training')
     print('y_train:', y_train.shape)
     model.fit(model_input, y_train, sample_weight=train_mask, validation_data=val_data, batch_size=A.shape[0],
-              epochs=100, shuffle=False, verbose=2,)  # callbacks=[mc_callback])
+              epochs=5, shuffle=False, verbose=2,)  # callbacks=[mc_callback])
     # model.load_weights(checkpoint_dir)
 
     eval_results = model.evaluate(
@@ -62,5 +65,6 @@ if __name__ == "__main__":
     gcn_embedding = model.layers[-1]
     embedding_model = Model(model.input, outputs=Lambda(lambda x: gcn_embedding.output)(model.input))
     embedding_weights = embedding_model.predict(model_input, batch_size=A.shape[0])
+    print(embedding_weights.shape)
     y = np.genfromtxt("{}{}.content".format('../data/cora/', 'cora'), dtype=np.dtype(str))[:, -1]
     plot_embeddings(embedding_weights, np.arange(A.shape[0]), y)

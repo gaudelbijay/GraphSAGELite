@@ -12,7 +12,7 @@ import sys
 def get_splits(y, ):
     idx_list = np.arange(len(y))
     # train_val, idx_test = train_test_split(idx_list, test_size=0.2, random_state=1024)  # 1000
-    # idx_train, idx_val = train_test_split(train_val, test_size=0.2, random_state=1024)  # 500
+    # idx_train, idx_val = train_test_split(train_val, test_ssize=0.2, random_state=1024)  # 500
 
     idx_train = []
     label_count = {}
@@ -26,9 +26,9 @@ def get_splits(y, ):
     idx_val = idx_val_test[0:500]
     idx_test = idx_val_test[500:1500]
 
-    y_train = np.zeros(y.shape, dtype=np.int32)
-    y_val = np.zeros(y.shape, dtype=np.int32)
-    y_test = np.zeros(y.shape, dtype=np.int32)
+    y_train = np.zeros(y.shape, dtype=np.int64)
+    y_val = np.zeros(y.shape, dtype=np.int64)
+    y_test = np.zeros(y.shape, dtype=np.int64)
     y_train[idx_train] = y[idx_train]
     y_val[idx_val] = y[idx_val]
     y_test[idx_test] = y[idx_test]
@@ -45,11 +45,11 @@ def load_data_v1(dataset="cora", path="../data/cora/", ):
     onehot_labels = encode_onehot(idx_features_labels[:, -1])
 
     # build graph
-    idx = np.array(idx_features_labels[:, 0], dtype=np.int32)
+    idx = np.array(idx_features_labels[:, 0], dtype=np.int64)
     idx_map = {j: i for i, j in enumerate(idx)}
-    edges_unordered = np.genfromtxt("{}{}.cites".format(path, dataset), dtype=np.int32)
+    edges_unordered = np.genfromtxt("{}{}.cites".format(path, dataset), dtype=np.int64)
     edges = np.array(list(map(idx_map.get, edges_unordered.flatten())),
-                     dtype=np.int32).reshape(edges_unordered.shape)
+                     dtype=np.int64).reshape(edges_unordered.shape)
     adj = sp.coo_matrix((np.ones(edges.shape[0]), (edges[:, 0], edges[:, 1])),
                         shape=(onehot_labels.shape[0], onehot_labels.shape[0]), dtype=np.float32)
 
@@ -146,7 +146,7 @@ def convert_symmetric(X, sparse=True):
 def encode_onehot(labels):
     classes = set(labels)
     classes_dict = {c: np.identity(len(classes))[i, :] for i, c in enumerate(classes)}
-    labels_onehot = np.array(list(map(classes_dict.get, labels)), dtype=np.int32)
+    labels_onehot = np.array(list(map(classes_dict.get, labels)), dtype=np.int64)
     return labels_onehot
 
 
