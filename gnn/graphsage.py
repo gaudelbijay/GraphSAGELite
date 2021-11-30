@@ -168,7 +168,7 @@ class PoolingAggregator(Layer):
         if self.activation:
             output = self.activation(output)
 
-        # output = tf.nn.l2_normalize(output, dim=-1)
+        ## output = tf.nn.l2_normalize(output, dim=-1)
 
         return output
 
